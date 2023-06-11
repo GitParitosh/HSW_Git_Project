@@ -1,9 +1,8 @@
 #Import all Libraries required for the Operators
-import Trigonometry as trig
-import Factorial as fact
-SupportedOperators=["+","-","/","*","^","!"]
-SupportedFunctions=["sin"]
-SupportedConstants={"c":3000000,"pi":3.14159,"e":2.718}
+import MainFunctions as mfunc
+SupportedOperators=["+","-","/","*","^","!","%","mod","x","log"]
+SupportedFunctions=["sin","cos","tan","cosec","sec","cot","sinh","cosh","tanh","cosech","coth","ln"]
+SupportedConstants={"c":3000000,"pi":3.14159,"e":2.71828,"g":9.81}
 #This is a list of all Operations/Functions Supported by the calculator.
 
 def Unique(l):
@@ -41,15 +40,15 @@ def MathObjects(inp):
             continue
         if BracketReader>0:
             if i not in "()":
-                MObj+=i
+                MObj=MObj+i
             elif i==")":
                 BracketReader=BracketReader-1
                 if BracketReader==0:
                     BracketObj=MathObjects(MObj)
-                    out.append(BracketObj[0])
+                    out.append(BracketObj)
                     MObj=""
                 else:
-                    MObj+=i
+                    MObj=MObj+i
             elif i=="(":
                 BracketReader=BracketReader+1
                 
@@ -83,7 +82,8 @@ def MathObjects(inp):
                 out.append("*")
                 BracketReader=1
                 continue
-            elif MObj.isdecimal() and i.isalpha():
+            elif MObj.isdecimal() and i.isalpha() and i not in "xlm":
+                #Even jankier implementation? Possibly, but due to nature of program this should work without issue.
                 out.append(float(MObj))
                 out.append("*")
                 MObj=i
@@ -130,15 +130,15 @@ def MathParser(inp):
     #Resolve Brackets
     for i in range(len(inp)):
         if type(inp[i])==list:
-            BracketResult=MathParser(i)
+            BracketResult=MathParser(inp[i])
             inp[i]=BracketResult
     #Resolve Functions
-    #This includes Trigonometry but also Hyperbolic Trigonometry and Ln(x)/Log(x). Basically any mathematical function that only depends on the bracket after it.
+    #This includes Trigonometry but also Hyperbolic Trigonometry and Ln(x). Basically any mathematical function that only depends on the bracket after it.
     for i in range(len(inp)):
         if inp[i] in SupportedFunctions:
-            func="Result="+"trig."+inp[i]+"("+inp[i+1]+")"
+            func="Result="+"mfunc."+str(inp[i])+"("+str(inp[i+1])+")"
             exec(func)
-            inp[i+1]=Result
+            inp[i+1]=locals()["Result"]
             inp[i]="temp"
             #WARNING: exec() is a large security issue, very vulnerable to code injection. Luckilly this code will never be on a server.
             #This code could be replaced to be safer but then I'd have to hardcode the call for every function in the list
@@ -148,15 +148,24 @@ def MathParser(inp):
     #Because of the nature of Factorial symbol being put after a number it needs to be parsed seperately to both functions and opperators
     for i in range(len(inp)):
         if inp[i]=="!":
-            inp[i+1]=fact.factorial(i)
+            inp[i+1]=mfunc.factorial(i)
             inp[i]="temp"
+    while "temp" in inp:
+        inp.remove("temp")
+    #Resolve Log
+    #Unlike Ln, Log has a base so it must be computed seperately. Currently It's in the format Base Log Value
+    for i in range(len(inp)):
+        if inp[i]=="log":
+            inp[i-1]=mfunc.log(inp[i-1],inp[i+1])
+            inp[i]="temp"
+            inp[i+1]="temp"
     while "temp" in inp:
         inp.remove("temp")
     #Resolve Exponents
     #PEMDAS
     for i in range(len(inp)):
         if inp[i]=="^":
-            inp[i-1]=inp[i-1]^inp[i+1]
+            inp[i-1]=inp[i-1]**inp[i+1]
             inp[i]="temp"
             inp[i+1]="temp"
     while "temp" in inp:
@@ -164,8 +173,20 @@ def MathParser(inp):
     #Resolve Multiplication
     #PEMDAS
     for i in range(len(inp)):
-        if inp[i]=="*":
+        if inp[i]=="*" or inp[i]=="x":
             inp[i-1]=inp[i-1]*inp[i+1]
+            inp[i]="temp"
+            inp[i+1]="temp"
+    while "temp" in inp:
+        inp.remove("temp")
+    #Resolve Modulo
+    #This returns the remainder after division, so I thought that it would be apropriate to put this here.
+    for i in range(len(inp)):
+        if inp[i]=="%" or inp[i]=="mod":
+            try:
+                inp[i-1]=inp[i-1]%inp[i+1]
+            except:
+                return "ERROR"
             inp[i]="temp"
             inp[i+1]="temp"
     while "temp" in inp:
@@ -174,7 +195,10 @@ def MathParser(inp):
     #PEMDAS
     for i in range(len(inp)):
         if inp[i]=="/":
-            inp[i-1]=inp[i-1]/inp[i+1]
+            try:
+                inp[i-1]=inp[i-1]/inp[i+1]
+            except:
+                return "ERROR"
             inp[i]="temp"
             inp[i+1]="temp"
     while "temp" in inp:
