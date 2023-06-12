@@ -11,6 +11,9 @@ def PrincipalBranch(x):
         
     return r,branch
 
+def deg(x):
+    r=(x*pi)/180
+    return r
 def sin(x):
     #The Taylor Series for Sin(x) around 0 is being used here. It has a very low error rate
     #Infact the error is less than x^15/15!, which in our Principal Branch is less than 0.00002 at maximum
