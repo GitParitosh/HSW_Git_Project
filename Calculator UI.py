@@ -208,7 +208,7 @@ Brackets are an important tool to differentiante your equations, they vastly imp
 ''',
 "brackets":'''PEMDAS is the order that standard mathematical expressions are resolved in. It stands for Parentheseis, Exponentiation, Multiplication, Division, Addition and Subtraction. You go from left to right solving each operation at a time. Functions are naturally solved during the Parentheseis step, due to there being an implied parenthesies around their arguments at all times
 Brackets are an important tool to differentiante your equations, they vastly improve readability of your expression, though they might be cumbursome to type each time. This calculator already interprets all equations in the order of PEMDAS for your convinience.
-'''
+''',
 "e":"e, also known as the Euler's Constant"
 }
 while True:
@@ -223,12 +223,12 @@ Type c or Close to Close calculator''')
         break
     elif inp[:2]=="h ":
         try:
-            print(HelpMessages(inp[2:]))
+            print(HelpMessages[inp[2:]])
         except:
             print(HelpErrorMessage)
     elif inp[:5]=="help ":
         try:
-            print(HelpMessages(inp[5:]))
+            print(HelpMessages[inp[5:]])
         except:
             print(HelpErrorMessage)
     else:
